@@ -1,0 +1,29 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Oculta metadata y carpetas internas del proyecto.
+    RewriteRule (^|/)\.(?!well-known/) - [R=404,L,NC]
+    RewriteRule ^(?:config|includes|vendor|\.git|\.git_backup_old)(?:/|$) - [R=404,L,NC]
+    RewriteRule ^(?:composer\.(?:json|lock)|README\.md|AGENTS\.md)$ - [R=404,L,NC]
+</IfModule>
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(?:composer\.(?:json|lock)|README\.md|AGENTS\.md|.*\.(?:sql|log|bak|dist|env|ini|sh))$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^(?:composer\.(?:json|lock)|README\.md|AGENTS\.md|.*\.(?:sql|log|bak|dist|env|ini|sh))$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>

@@ -49,6 +49,8 @@ foreach (explode(' ', $nombre) as $parte) {
     if ($parte !== '') $iniciales .= mb_substr($parte, 0, 1, 'UTF-8');
 }
 $iniciales = strtoupper(mb_substr($iniciales, 0, 2, 'UTF-8'));
+
+ob_start();
 ?>
 <header class="navbar-top">
     <div class="navbar-left">
@@ -100,3 +102,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<?php
+erp_register_body_fragment('navbar', trim((string) ob_get_clean()));

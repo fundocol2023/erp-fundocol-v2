@@ -1,9 +1,119 @@
 <?php
 
+if (!function_exists('erp_project_root')) {
+    function erp_project_root(): string
+    {
+        $root = realpath(dirname(__DIR__));
+
+        return $root !== false ? $root : dirname(__DIR__);
+    }
+}
+
+if (!function_exists('erp_normalize_web_path')) {
+    function erp_normalize_web_path(string $path): string
+    {
+        $normalized = str_replace('\\', '/', $path);
+        $normalized = preg_replace('#/+#', '/', $normalized) ?? $normalized;
+
+        if ($normalized === '' || $normalized === '/') {
+            return '';
+        }
+
+        return '/' . trim($normalized, '/');
+    }
+}
+
+if (!function_exists('erp_base_path')) {
+    function erp_base_path(): string
+    {
+        static $basePath;
+
+        if ($basePath !== null) {
+            return $basePath;
+        }
+
+        $projectRoot = erp_project_root();
+        $documentRoot = realpath((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+
+        if ($documentRoot !== false) {
+            $projectPrefix = rtrim(str_replace('\\', '/', $projectRoot), '/');
+            $documentPrefix = rtrim(str_replace('\\', '/', $documentRoot), '/');
+
+            if ($projectPrefix === $documentPrefix) {
+                $basePath = '';
+
+                return $basePath;
+            }
+
+            if (str_starts_with($projectPrefix . '/', $documentPrefix . '/')) {
+                $relative = substr($projectPrefix, strlen($documentPrefix));
+                $basePath = erp_normalize_web_path($relative);
+
+                return $basePath;
+            }
+        }
+
+        $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $projectDir = basename($projectRoot);
+        $marker = '/' . $projectDir . '/';
+        $position = strpos($scriptName, $marker);
+
+        if ($position !== false) {
+            $basePath = erp_normalize_web_path(substr($scriptName, 0, $position + strlen('/' . $projectDir)));
+
+            return $basePath;
+        }
+
+        $basePath = '';
+
+        return $basePath;
+    }
+}
+
 if (!function_exists('erp_app_url')) {
     function erp_app_url(string $path = ''): string
     {
-        return '/' . ltrim($path, '/');
+        $basePath = erp_base_path();
+        $relativePath = ltrim($path, '/');
+
+        if ($relativePath === '') {
+            return $basePath !== '' ? $basePath . '/' : '/';
+        }
+
+        return ($basePath !== '' ? $basePath : '') . '/' . $relativePath;
+    }
+}
+
+if (!function_exists('erp_absolute_url')) {
+    function erp_absolute_url(string $path = ''): ?string
+    {
+        $host = erp_request_host();
+        if ($host === null) {
+            return null;
+        }
+
+        return erp_request_scheme() . '://' . $host . erp_app_url($path);
+    }
+}
+
+if (!function_exists('erp_replace_legacy_absolute_urls')) {
+    function erp_replace_legacy_absolute_urls(string $buffer): string
+    {
+        $baseUrl = erp_absolute_url('');
+        if ($baseUrl === null || $buffer === '') {
+            return $buffer;
+        }
+
+        $legacyBases = [
+            'https://erp.fundocol.org/',
+            'http://erp.fundocol.org/',
+            'https://erp-fundocol.fundocol.org/',
+            'http://erp-fundocol.fundocol.org/',
+            'https://tuerp.fundocol.org/',
+            'http://tuerp.fundocol.org/',
+        ];
+
+        return str_replace($legacyBases, array_fill(0, count($legacyBases), $baseUrl), $buffer);
     }
 }
 
@@ -23,6 +133,33 @@ if (!function_exists('erp_brand_suffix')) {
     function erp_brand_suffix(): string
     {
         return 'ERP Fundocol';
+    }
+}
+
+if (!function_exists('erp_register_body_fragment')) {
+    function erp_register_body_fragment(string $slot, string $markup): void
+    {
+        if (!isset($GLOBALS['erp_body_fragments']) || !is_array($GLOBALS['erp_body_fragments'])) {
+            $GLOBALS['erp_body_fragments'] = [];
+        }
+
+        $GLOBALS['erp_body_fragments'][$slot] = $markup;
+    }
+}
+
+if (!function_exists('erp_registered_body_fragments')) {
+    function erp_registered_body_fragments(): array
+    {
+        $fragments = $GLOBALS['erp_body_fragments'] ?? [];
+
+        return is_array($fragments) ? $fragments : [];
+    }
+}
+
+if (!function_exists('erp_navbar_critical_css')) {
+    function erp_navbar_critical_css(): string
+    {
+        return '.navbar-top{width:100%;min-height:68px;background:linear-gradient(90deg,#14223f 0%,#1a2f58 55%,#1a284d 100%);display:flex;align-items:center;justify-content:space-between;padding:0 32px 0 18px;box-sizing:border-box;position:fixed;top:0;left:0;right:0;z-index:1200;box-shadow:0 8px 22px rgba(15,23,42,.18)}.navbar-left,.navbar-right,.navbar-item{display:flex;align-items:center}.navbar-left{gap:10px}.navbar-right{gap:18px}.navbar-logo{width:44px;height:44px;border-radius:10px;background:#fff;padding:4px;object-fit:contain;box-sizing:border-box}.notif-bell{color:#e2e8f0;font-size:1.5em;text-decoration:none;position:relative}.notif-count{position:absolute;top:-7px;right:-8px;background:#e63946;color:#fff;font-size:.85em;border-radius:999px;padding:2px 7px;font-weight:700}.navbar-avatar{width:40px;height:40px;border-radius:50%;background:#4072e0;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05em;box-shadow:0 6px 16px rgba(15,23,42,.22);cursor:pointer}.navbar-dropdown{display:none}.main-dashboard{padding-top:80px}.navbar-spacer{height:68px}@media (max-width:700px){.navbar-top{min-height:60px;padding:0 14px}.navbar-logo{width:36px;height:36px}.navbar-right{gap:12px}.navbar-avatar{width:34px;height:34px;font-size:.95em}.navbar-spacer{height:60px}.main-dashboard{padding-top:72px}}';
     }
 }
 
@@ -109,7 +246,15 @@ if (!function_exists('erp_transform_head_markup')) {
     function erp_transform_head_markup(string $buffer): string
     {
         if ($buffer === '' || stripos($buffer, '<head') === false) {
-            return $buffer;
+            return erp_replace_legacy_absolute_urls($buffer);
+        }
+
+        $buffer = erp_replace_legacy_absolute_urls($buffer);
+
+        if (stripos($buffer, 'id="erp-critical-navbar-css"') === false) {
+            $criticalCssTag = "\n    <style id=\"erp-critical-navbar-css\">" . erp_navbar_critical_css() . "</style>\n";
+            $updated = preg_replace('/(<head\b[^>]*>)/i', '$1' . $criticalCssTag, $buffer, 1);
+            $buffer = is_string($updated) ? $updated : $buffer;
         }
 
         $canonical = erp_canonical_url();
@@ -133,6 +278,25 @@ if (!function_exists('erp_transform_head_markup')) {
         }
 
         return $buffer;
+    }
+}
+
+if (!function_exists('erp_inject_body_fragments')) {
+    function erp_inject_body_fragments(string $buffer): string
+    {
+        $fragments = erp_registered_body_fragments();
+        if ($buffer === '' || $fragments === [] || stripos($buffer, '<body') === false) {
+            return $buffer;
+        }
+
+        $html = implode("\n", array_filter($fragments));
+        if ($html === '') {
+            return $buffer;
+        }
+
+        $updated = preg_replace('/(<body\b[^>]*>)/i', '$1' . "\n" . $html . "\n", $buffer, 1);
+
+        return is_string($updated) ? $updated : $buffer;
     }
 }
 
@@ -191,7 +355,13 @@ if (!function_exists('erp_canonical_url')) {
             $path = '/';
         }
 
-        $canonical = erp_request_scheme() . '://' . $host . $path;
+        $basePath = erp_base_path();
+        if ($basePath !== '' && str_starts_with($path, $basePath . '/')) {
+            $path = substr($path, strlen($basePath));
+            $path = $path !== '' ? $path : '/';
+        }
+
+        $canonical = erp_request_scheme() . '://' . $host . erp_app_url(ltrim($path, '/'));
         $query = http_build_query(erp_canonical_query_params());
 
         if ($query !== '') {
@@ -230,7 +400,9 @@ if (!function_exists('erp_start_canonical_buffer')) {
         $started = true;
 
         ob_start(static function (string $buffer): string {
-            return erp_transform_head_markup($buffer);
+            $buffer = erp_transform_head_markup($buffer);
+
+            return erp_inject_body_fragments($buffer);
         });
     }
 }

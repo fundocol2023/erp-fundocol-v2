@@ -1,5 +1,10 @@
 <?php
-if (!isset($_SESSION)) session_start();
+require_once __DIR__ . '/bootstrap.php';
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/db.php';
 
 // Traer módulos según permisos del rol
@@ -15,7 +20,7 @@ $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <img src="assets/img/logo.svg" alt="Logo" class="sidebar-logo-img">
+        <img src="<?= htmlspecialchars(erp_asset_url('assets/img/logo.svg')) ?>" alt="Logo" class="sidebar-logo-img">
         <span class="sidebar-title">ERP</span>
     </div>
     <nav class="sidebar-menu">
