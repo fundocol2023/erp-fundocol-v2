@@ -1,9 +1,13 @@
 <?php
+require_once __DIR__ . '/includes/bootstrap.php';
+
 session_start();
+erp_send_private_page_headers();
+
 if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit();
+    erp_redirect('login.php');
 }
+
 require_once 'config/db.php';
 
 // Carga módulos según rol
@@ -21,11 +25,14 @@ $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard | ERP</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Panel principal del ERP de Fundocol para acceder a los módulos internos según el rol del usuario.">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Panel principal | ERP Fundocol</title>
+    <link rel="stylesheet" href="<?= htmlspecialchars(erp_asset_url('assets/css/style.css')) ?>">
     <!-- Bootstrap Icons CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="icon" type="image/x-icon" href="https://erp.fundocol.org/assets/img/Fundocol_favicon.png">
+    <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars(erp_asset_url('assets/img/Fundocol_favicon.png')) ?>">
 
 </head>
 <body>
@@ -35,7 +42,7 @@ $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php include 'includes/navbar.php'; ?>
         <section class="odoo-menu">
             <div class="odoo-menu-title">
-                <img src="assets/img/logo.svg" alt="Logo" class="odoo-menu-logo">
+                <img src="<?= htmlspecialchars(erp_asset_url('assets/img/logo.svg')) ?>" alt="Logo de Fundocol" class="odoo-menu-logo" width="60" height="60" fetchpriority="high">
                 <h1>Bienvenido, <?= htmlspecialchars($_SESSION['usuario_nombre']) ?></h1>
                 <p>Selecciona un módulo para continuar</p>
             </div>

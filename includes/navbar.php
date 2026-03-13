@@ -1,5 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/bootstrap.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+erp_send_private_page_headers();
 require_once __DIR__ . '/../config/db.php';
 
 /* -------------------------------------------
@@ -11,8 +17,7 @@ if (isset($_SESSION['LAST_ACTIVITY'])) {
     if (time() - $_SESSION['LAST_ACTIVITY'] > $tiempo_maximo_inactividad) {
         session_unset();
         session_destroy();
-        echo "<script>window.location.href='https://erp.fundocol.org/login.php?timeout=1';</script>";
-        return;
+        erp_redirect('login.php?timeout=1');
     }
 }
 $_SESSION['LAST_ACTIVITY'] = time();
@@ -21,8 +26,7 @@ $_SESSION['LAST_ACTIVITY'] = time();
    VALIDAR SESIÓN
 --------------------------------------------*/
 if (!isset($_SESSION['usuario_id'])) {
-    echo "<script>window.location.href='https://erp.fundocol.org/login.php';</script>";
-    return;
+    erp_redirect('login.php');
 }
 
 // Contar notificaciones no leídas (cache breve para reducir consultas)
@@ -48,7 +52,7 @@ $iniciales = strtoupper(mb_substr($iniciales, 0, 2, 'UTF-8'));
 ?>
 <header class="navbar-top">
     <div class="navbar-left">
-        <img src="https://erp.fundocol.org/assets/img/logo.svg" alt="Logo empresa" class="navbar-logo">
+        <img src="<?= htmlspecialchars(erp_asset_url('assets/img/logo.svg')) ?>" alt="Logo de Fundocol" class="navbar-logo" width="44" height="44">
     </div>
     <div class="navbar-center"></div>
     <div class="navbar-right">
@@ -61,12 +65,12 @@ $iniciales = strtoupper(mb_substr($iniciales, 0, 2, 'UTF-8'));
             </a>
         </div>
         <div class="navbar-item navbar-avatar-container">
-            <div class="navbar-avatar" id="avatar-btn"><?= htmlspecialchars($iniciales) ?></div>
+            <button type="button" class="navbar-avatar" id="avatar-btn" aria-expanded="false" aria-controls="avatar-dropdown"><?= htmlspecialchars($iniciales) ?></button>
             <div class="navbar-dropdown" id="avatar-dropdown">
                 <span class="navbar-user-name"><?= htmlspecialchars($nombre) ?></span>
-                <a href="https://erp.fundocol.org/index.php" class="navbar-dropdown-link"><i class="bi bi-grid"></i> Volver al menú</a>
-                <a href="https://erp.fundocol.org/modules/usuarios/perfil.php" class="navbar-dropdown-link"><i class="bi bi-person-circle"></i> Perfil</a>
-                <a href="https://erp.fundocol.org/logout.php" class="navbar-dropdown-link"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+                <a href="<?= htmlspecialchars(erp_app_url('index.php')) ?>" class="navbar-dropdown-link"><i class="bi bi-grid"></i> Volver al menú</a>
+                <a href="<?= htmlspecialchars(erp_app_url('modules/usuarios/perfil.php')) ?>" class="navbar-dropdown-link"><i class="bi bi-person-circle"></i> Perfil</a>
+                <a href="<?= htmlspecialchars(erp_app_url('logout.php')) ?>" class="navbar-dropdown-link"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
             </div>
         </div>
     </div>
@@ -75,15 +79,24 @@ $iniciales = strtoupper(mb_substr($iniciales, 0, 2, 'UTF-8'));
 document.addEventListener('DOMContentLoaded', function() {
     const avatarBtn = document.getElementById('avatar-btn');
     const dropdown = document.getElementById('avatar-dropdown');
+    if (!avatarBtn || !dropdown) {
+        return;
+    }
+
     avatarBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         dropdown.classList.toggle('show');
+        avatarBtn.setAttribute('aria-expanded', dropdown.classList.contains('show') ? 'true' : 'false');
     });
     document.addEventListener('click', function() {
         dropdown.classList.remove('show');
+        avatarBtn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            dropdown.classList.remove('show');
+            avatarBtn.setAttribute('aria-expanded', 'false');
+        }
     });
 });
 </script>
-
-
-

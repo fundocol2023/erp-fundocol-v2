@@ -6,6 +6,7 @@
 .env.*
 config/db.php
 config/graph_mail.php
+.git_backup_old
 
 ############################
 # DEPENDENCIAS

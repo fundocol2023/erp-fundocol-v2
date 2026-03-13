@@ -14,8 +14,10 @@ body.login-bg {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
 }
 
 .login-card {
@@ -26,8 +28,9 @@ body.login-bg {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 320px;
+    min-width: 0;
     max-width: 360px;
+    width: min(100%, 360px);
 }
 
 .logo-login {
@@ -43,6 +46,18 @@ body.login-bg {
     letter-spacing: 1px;
 }
 
+.login-message {
+    color: #14532d;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    padding: 10px 15px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
 .login-card form {
     width: 100%;
     display: flex;
@@ -56,6 +71,8 @@ body.login-bg {
     border: 1px solid #ccc;
     font-size: 16px;
     transition: border .2s;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .login-card input:focus {
@@ -73,6 +90,7 @@ body.login-bg {
     font-weight: bold;
     cursor: pointer;
     transition: background .2s;
+    width: 100%;
 }
 
 .login-card button:hover {
@@ -203,6 +221,9 @@ html {
     transition: background .2s, transform .12s;
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
     border: 2px solid #fff;
+    appearance: none;
+    border-width: 2px;
+    cursor: pointer;
 }
 
 .navbar-avatar:hover {
@@ -6144,38 +6165,14 @@ html {
     background: #0369a1;
 }
 
-/* generar_hash.php */
-.generar-hash-page {
-    background: #f7f7f7;
-    font-family: Arial;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+@media (max-width: 480px) {
+    .login-container {
+        padding: 16px;
+    }
 
-.generar-hash-page form {
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 12px #bbb;
-}
-
-.generar-hash-page input[type=password] {
-    padding: 8px 14px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    width: 240px;
-}
-
-.generar-hash-page button {
-    padding: 8px 20px;
-    border-radius: 6px;
-    border: none;
-    background: #2980b9;
-    color: #fff;
-    font-size: 16px;
+    .login-card {
+        padding: 32px 20px 24px 20px;
+    }
 }
 
 @media (max-width: 900px) {
